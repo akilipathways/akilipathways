@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { ShapeGraphics } from '@/games/utils/ShapeGraphics';
 
 export class AbstractReasoningScene extends Phaser.Scene {
     private score: number = 0;
@@ -33,11 +34,22 @@ export class AbstractReasoningScene extends Phaser.Scene {
             color: '#D97706'
         });
 
-        // Main Matrix Area (Left)
+        // Generate Textures
+        ShapeGraphics.createShapeTexture(this, 'shape-circle-red', 'DIAMOND', 100, 0xEF4444); // Hack: Using Diamond for now as Circle replacement or add Circle to util?
+        // Actually, let's just use Phaser's circle for Circle, but use textures for others.
+        // Update: Added DIAMOND, CROSS, STAR to util.
+        ShapeGraphics.createShapeTexture(this, 'shape-triangle-red', 'TRIANGLE', 100, 0xEF4444);
+        ShapeGraphics.createShapeTexture(this, 'shape-triangle-blue', 'TRIANGLE', 100, 0x3B82F6);
+        ShapeGraphics.createShapeTexture(this, 'shape-square-blue', 'CROSS', 100, 0x3B82F6); // Let's vary it
+        ShapeGraphics.createShapeTexture(this, 'shape-star-green', 'STAR', 100, 0x22C55E);
+        ShapeGraphics.createShapeTexture(this, 'shape-cross-blue', 'CROSS', 100, 0x3B82F6);
+        ShapeGraphics.createShapeTexture(this, 'shape-diamond-red', 'DIAMOND', 100, 0xEF4444);
+
+        // Matrix Area
         this.add.rectangle(250, 350, 400, 400, 0xE2E8F0).setStrokeStyle(2, 0x94A3B8);
         this.gridZone = this.add.container(250, 350);
 
-        // Options Area (Right)
+        // Options Area
         this.add.text(600, 200, 'Select the missing piece:', {
             fontSize: '18px',
             color: '#64748B'
@@ -56,33 +68,39 @@ export class AbstractReasoningScene extends Phaser.Scene {
     }
 
     generateLevel() {
-        // Clear previous
         this.gridZone.removeAll(true);
         this.optionsZone.removeAll(true);
 
-        // For this demo, let's just draw a preset 2x2 matrix
-        // [ Circle Red ] [ Circle Blue ]
-        // [ Square Red ] [ ? ]
-        // Answer: Square Blue
+        // Pattern: Row 1: Diamond Red -> Triangle Blue
+        // Row 2: Triangle Red -> ? (Diamond Blue)
+        // Rule: Shape alternates, Color alternates?
+        // Let's do:
+        // [ Diamond Red ] [ Triangle Blue ]
+        // [ Triangle Red ] [ ? ]
+        // Answer: Diamond Blue
 
-        // Draw Matrix Background Grid
-        // Top Left
-        this.drawShape(this.gridZone, -100, -100, 'CIRCLE', 0xEF4444);
-        // Top Right
-        this.drawShape(this.gridZone, 100, -100, 'CIRCLE', 0x3B82F6);
-        // Bottom Left
-        this.drawShape(this.gridZone, -100, 100, 'SQUARE', 0xEF4444);
-        // Bottom Right (Question Mark)
+        // Draw Matrix
+        this.drawShape(this.gridZone, -100, -100, 'shape-diamond-red');
+        this.drawShape(this.gridZone, 100, -100, 'shape-triangle-blue');
+        this.drawShape(this.gridZone, -100, 100, 'shape-triangle-red'); // Need to gen this texture?
+        // Oops, I didn't generate triangle-red above, I did diamond-red and triangle-red.
+        // Wait, I did generate triangle-red.
+
+        // Question Mark
         const questionBox = this.add.rectangle(100, 100, 150, 150, 0xFFFFFF).setStrokeStyle(2, 0x000000);
         const qText = this.add.text(100, 100, '?', { fontSize: '64px', color: '#000000' }).setOrigin(0.5);
         this.gridZone.add([questionBox, qText]);
 
-        // Generate Options
+        // Options
+        // we need a Diamond Blue texture
+        ShapeGraphics.createShapeTexture(this, 'shape-diamond-blue', 'DIAMOND', 80, 0x3B82F6);
+        ShapeGraphics.createShapeTexture(this, 'shape-star-blue', 'STAR', 80, 0x3B82F6);
+
         const options = [
-            { type: 'SQUARE', color: 0x22C55E, correct: false }, // Green Square
-            { type: 'CIRCLE', color: 0x3B82F6, correct: false }, // Blue Circle
-            { type: 'SQUARE', color: 0x3B82F6, correct: true },  // Blue Square (Correct)
-            { type: 'TRIANGLE', color: 0xEF4444, correct: false } // Red Triangle
+            { key: 'shape-star-green', correct: false },
+            { key: 'shape-triangle-blue', correct: false },
+            { key: 'shape-diamond-blue', correct: true },
+            { key: 'shape-cross-blue', correct: false }
         ];
 
         options.forEach((opt, index) => {
@@ -93,38 +111,22 @@ export class AbstractReasoningScene extends Phaser.Scene {
                 .setStrokeStyle(2, 0xCBD5E1)
                 .setInteractive({ useHandCursor: true });
 
-            this.createShapeSprite(x, y, opt.type, opt.color);
+            this.createShapeSprite(x, y, opt.key);
 
             bg.on('pointerdown', () => this.handleAnswer(opt.correct));
-            // Hover effect
             bg.on('pointerover', () => bg.setStrokeStyle(4, 0x2C5AA0));
             bg.on('pointerout', () => bg.setStrokeStyle(2, 0xCBD5E1));
         });
     }
 
-    drawShape(container: Phaser.GameObjects.Container, x: number, y: number, type: string, color: number) {
+    drawShape(container: Phaser.GameObjects.Container, x: number, y: number, key: string) {
         const bg = this.add.rectangle(x, y, 150, 150, 0xFFFFFF).setStrokeStyle(2, 0xCBD5E1);
-        let shape: Phaser.GameObjects.Shape;
-
-        if (type === 'CIRCLE') {
-            shape = this.add.circle(x, y, 50, color);
-        } else if (type === 'SQUARE') {
-            shape = this.add.rectangle(x, y, 100, 100, color);
-        } else {
-            shape = this.add.triangle(x, y, 0, -50, 50, 50, -50, 50, color);
-        }
-
+        const shape = this.add.sprite(x, y, key);
         container.add([bg, shape]);
     }
 
-    createShapeSprite(x: number, y: number, type: string, color: number) {
-        if (type === 'CIRCLE') {
-            return this.add.circle(x, y, 40, color);
-        } else if (type === 'SQUARE') {
-            return this.add.rectangle(x, y, 80, 80, color);
-        } else {
-            return this.add.triangle(x, y, 0, -40, 40, 40, -40, 40, color);
-        }
+    createShapeSprite(x: number, y: number, key: string) {
+        return this.add.sprite(x, y, key);
     }
 
     handleAnswer(isCorrect: boolean) {
@@ -133,15 +135,10 @@ export class AbstractReasoningScene extends Phaser.Scene {
             this.cameras.main.flash(500, 0, 255, 0);
             this.scoreText.setText(`Score: ${this.score}`);
             this.add.text(400, 300, 'CORRECT!', { fontSize: '48px', color: '#16A34A', fontStyle: 'bold' }).setOrigin(0.5);
-
-            // Advance level?
-            // For demo end here
             this.endGame();
         } else {
             this.cameras.main.shake(200, 0.01);
             this.add.text(400, 300, 'TRY AGAIN', { fontSize: '48px', color: '#DC2626', fontStyle: 'bold' }).setOrigin(0.5);
-            // End game on wrong answer too for demo? Or just penalize?
-            // Let's end for throughput
             this.time.delayedCall(1000, () => this.endGame());
         }
     }

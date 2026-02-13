@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { CubeGraphics } from '@/games/utils/CubeGraphics';
 
 export class SpatialAbilityScene extends Phaser.Scene {
     private score: number = 0;
@@ -29,6 +30,10 @@ export class SpatialAbilityScene extends Phaser.Scene {
             color: '#D97706'
         });
 
+        // Generate Textures
+        CubeGraphics.createCubeTexture(this, 'cube-orange', 50, 0xF97316);
+        CubeGraphics.createCubeTexture(this, 'cube-blue', 50, 0x3B82F6);
+
         this.showQuestion();
 
         this.time.addEvent({
@@ -40,43 +45,55 @@ export class SpatialAbilityScene extends Phaser.Scene {
     }
 
     showQuestion() {
-        // Clear screen logic would go here
-
         // Question: "Which shape matches the target?"
         this.add.text(400, 150, 'Which option is a rotation of the target?', {
             fontSize: '24px',
             color: '#1E293B'
         }).setOrigin(0.5);
 
-        // Target Shape (L-shape represented by simple graphics)
-        // Let's draw an L shape
-        const targetContainer = this.add.container(400, 250);
-        this.drawLShape(targetContainer, 0xF97316);
+        // Target Shape (3D L-shape)
+        const targetContainer = this.add.container(400, 280);
+        this.drawLShape(targetContainer, 'cube-orange');
 
         // Options
         const options = [
             { id: 1, correct: false, rotation: 0, mirror: true },
-            { id: 2, correct: true, rotation: 90, mirror: false },
-            { id: 3, correct: false, rotation: 180, mirror: true },
-            { id: 4, correct: false, rotation: 270, mirror: true }
+            { id: 2, correct: true, rotation: 0, mirror: false, angleOffset: 90 }, // Visual rotation
+            { id: 3, correct: false, rotation: 0, mirror: true, angleOffset: 180 },
+            { id: 4, correct: false, rotation: 0, mirror: true, angleOffset: -90 }
         ];
+
+        // We can't easily "rotate" the 3D sprite composite 90 degrees around Z axis to look like 3D rotation without redrawing from new perspective.
+        // For this demo polish, we'll just rotate the generic container in 2D, which looks like "spinning on the table".
+        // It's acceptable for "Spatial Ability" to test 2D rotation of 3D objects.
 
         options.forEach((opt, index) => {
             const x = 200 + index * 140;
-            const y = 450;
+            const y = 500;
 
             const bg = this.add.rectangle(x, y, 120, 120, 0xFFFFFF)
                 .setStrokeStyle(2, 0xCBD5E1)
                 .setInteractive({ useHandCursor: true });
 
             const optContainer = this.add.container(x, y);
-            this.drawLShape(optContainer, 0x3B82F6);
+            this.drawLShape(optContainer, 'cube-blue');
 
             // Apply transformation
-            optContainer.setAngle(opt.rotation);
+            // For correct one, we just rotate it 90 degrees?
+            // "Rotation of the target" means it matches 2D rotation.
+
             if (opt.mirror) {
-                optContainer.setScale(-1, 1); // Flip horizontal
+                // Mirroring makes it impossible to match by rotation usually
+                optContainer.setScale(-0.8, 0.8); // Scale down a bit to fit
+            } else {
+                optContainer.setScale(0.8);
             }
+
+            if (opt.angleOffset) {
+                optContainer.setAngle(opt.angleOffset);
+            }
+            // Add some base rotation variance?
+            // optContainer.angle += opt.rotation;
 
             bg.on('pointerdown', () => this.handleAnswer(opt.correct));
             bg.on('pointerover', () => bg.setStrokeStyle(4, 0xEA580C));
@@ -84,18 +101,32 @@ export class SpatialAbilityScene extends Phaser.Scene {
         });
     }
 
-    drawLShape(container: Phaser.GameObjects.Container, color: number) {
-        // Draw 3 blocks vertical, 1 block horizontal
-        // [ ]
-        // [ ]
-        // [ ][ ]
-        const size = 30;
-        const b1 = this.add.rectangle(0, -size, size, size, color).setStrokeStyle(1, 0xFFFFFF);
-        const b2 = this.add.rectangle(0, 0, size, size, color).setStrokeStyle(1, 0xFFFFFF);
-        const b3 = this.add.rectangle(0, size, size, size, color).setStrokeStyle(1, 0xFFFFFF);
-        const b4 = this.add.rectangle(size, size, size, size, color).setStrokeStyle(1, 0xFFFFFF); // The foot
+    drawLShape(container: Phaser.GameObjects.Container, texture: string) {
+        // Draw 3 blocks vertical, 1 block horizontal attached to bottom
+        // Stack from bottom up to handle Z-order
+        const size = 50;
+        const stepY = size * 0.6; // Isometric spacing roughly
 
-        container.add([b1, b2, b3, b4]);
+        // Foot (Right)
+        const b4 = this.add.sprite(size * 0.8, size * 0.5, texture);
+
+        // Bottom Vertical
+        const b1 = this.add.sprite(0, size * 0.5, texture);
+
+        // Middle Vertical
+        const b2 = this.add.sprite(0, size * 0.5 - stepY, texture);
+
+        // Top Vertical
+        const b3 = this.add.sprite(0, size * 0.5 - stepY * 2, texture);
+
+        // Sorting: back-most first?
+        // With z-index in container?
+        // b4 is 'in front' or 'beside' b1?
+        // In isometric, lower on screen is usually 'front'.
+        // b1 and b4 are at same Y.
+        // Let's add them in visual order back-to-front.
+
+        container.add([b3, b2, b1, b4]);
     }
 
     handleAnswer(isCorrect: boolean) {
@@ -104,11 +135,12 @@ export class SpatialAbilityScene extends Phaser.Scene {
             this.scoreText.setText(`Score: ${this.score}`);
             this.cameras.main.flash(500, 0, 255, 0);
             this.add.text(400, 350, 'MATCH!', { fontSize: '48px', color: '#16A34A', fontStyle: 'bold' }).setOrigin(0.5);
+            this.endGame();
         } else {
             this.cameras.main.shake(200, 0.01);
             this.add.text(400, 350, 'NO MATCH', { fontSize: '48px', color: '#DC2626', fontStyle: 'bold' }).setOrigin(0.5);
+            this.time.delayedCall(1000, () => this.endGame());
         }
-        this.time.delayedCall(1000, () => this.endGame());
     }
 
     updateTimer() {

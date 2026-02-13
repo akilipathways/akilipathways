@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
+import { GearGraphics } from '@/games/utils/GearGraphics';
 
 export class MechanicalReasoningScene extends Phaser.Scene {
     private score: number = 0;
     private scoreText!: Phaser.GameObjects.Text;
-    private gears: Phaser.GameObjects.Arc[] = [];
-    private arrows: Phaser.GameObjects.Text[] = [];
+    private gears: Phaser.GameObjects.Sprite[] = [];
 
     constructor() {
         super({ key: 'MechanicalReasoning' });
@@ -24,29 +24,35 @@ export class MechanicalReasoningScene extends Phaser.Scene {
             color: '#1E293B'
         });
 
+        // Generate textures
+        GearGraphics.createGearTexture(this, 'gear-small', 60, 12, 0x94A3B8);
+        GearGraphics.createGearTexture(this, 'gear-medium', 80, 16, 0x64748B);
+        GearGraphics.createGearTexture(this, 'gear-target', 60, 12, 0xF59E0B);
+
         this.showQuestion();
     }
 
     showQuestion() {
         // Clear previous
         this.gears.forEach(g => g.destroy());
-        this.arrows.forEach(a => a.destroy());
         this.gears = [];
-        this.arrows = [];
 
         // Simple 3-Gear Train
         // Gear 1 (Driver) -> Gear 2 -> Gear 3 (Target)
 
         // Gear 1
-        const g1 = this.createGear(200, 300, 60, 0x334155);
-        this.add.text(190, 290, 'A', { color: '#FFF' });
+        const g1 = this.add.sprite(200, 300, 'gear-small');
+        this.add.text(190, 290, 'A', { color: '#000', fontStyle: 'bold' }).setOrigin(0.5); // Center on gear, maybe better visibility
 
-        // Gear 2
-        const g2 = this.createGear(340, 300, 80, 0x475569);
+        // Gear 2 (Meshed with 1)
+        // Distance = r1 + r2 + toothDepth * 2 (approx)
+        // 60 + 80 + 20 = 160
+        const g2 = this.add.sprite(200 + 150, 300, 'gear-medium');
 
-        // Gear 3
-        const g3 = this.createGear(500, 300, 60, 0xD97706); // Target color
-        this.add.text(490, 290, '?', { color: '#FFF', fontSize: '24px' });
+        // Gear 3 (Meshed with 2)
+        // 80 + 60 + 20 = 160
+        const g3 = this.add.sprite(200 + 150 + 150, 300, 'gear-target');
+        this.add.text(200 + 150 + 150, 300, '?', { color: '#000', fontSize: '24px', fontStyle: 'bold' }).setOrigin(0.5);
 
         this.gears.push(g1, g2, g3);
 
@@ -54,16 +60,25 @@ export class MechanicalReasoningScene extends Phaser.Scene {
         this.tweens.add({
             targets: g1,
             angle: 360,
-            duration: 2000,
-            repeat: -1
+            duration: 4000,
+            repeat: -1,
+            ease: 'Linear'
         });
 
         // Animate Middle Gear (Counter-Clockwise)
+        // Ratio 12 teeth / 16 teeth = 0.75
+        // Duration should be longer for bigger gear to match linear speed?
+        // angular velocity w = v / r
+        // w1 * r1 = w2 * r2
+        // 360/4000 * 60 = w2 * 80
+        // w2 = (360/4000) * (60/80) = 0.09 * 0.75 = 0.0675 deg/ms
+        // Duration for 360 = 360 / 0.0675 = 5333 ms
         this.tweens.add({
             targets: g2,
             angle: -360,
-            duration: 2000 * (80 / 60), // Slower because bigger
-            repeat: -1
+            duration: 5333,
+            repeat: -1,
+            ease: 'Linear'
         });
 
         // Target Gear (Static for now, user must guess)
@@ -88,35 +103,7 @@ export class MechanicalReasoningScene extends Phaser.Scene {
         btnCCW.on('pointerdown', () => this.handleAnswer(false, g3));
     }
 
-    createGear(x: number, y: number, radius: number, color: number) {
-        // Draw a circle with "teeth" (rectangles)
-        const container = this.add.container(x, y);
-        const circle = this.add.circle(0, 0, radius, color);
-        container.add(circle);
-
-        // Add visual indicator of rotation (a line)
-        const line = this.add.rectangle(0, 0, radius * 1.5, 5, 0xFFFFFF);
-        container.add(line);
-
-        // Add cross
-        const line2 = this.add.rectangle(0, 0, 5, radius * 1.5, 0xFFFFFF);
-        container.add(line2);
-
-        // We return the container as the "gear"
-        // But containers don't have 'angle' tweening the way we expect sometimes in simple setup? 
-        // Actually Scene.add.container returns a GO that can be rotated.
-
-        // Wait, 'Arc' type in my Class property description might be wrong if I use Container. 
-        // Let's just return the Container and cast or change type content.
-
-        return container as unknown as Phaser.GameObjects.Arc;
-    }
-
-    handleAnswer(isClockwise: boolean, targetGear: any) {
-        // For this specific setup (1-2-3), Connection is Odd (1-3), so direction matches?
-        // 1(CW) -> 2(CCW) -> 3(CW)
-        // So Correct is Clockwise.
-
+    handleAnswer(isClockwise: boolean, targetGear: Phaser.GameObjects.Sprite) {
         const isCorrect = isClockwise === true;
 
         if (isCorrect) {
@@ -128,8 +115,9 @@ export class MechanicalReasoningScene extends Phaser.Scene {
             this.tweens.add({
                 targets: targetGear,
                 angle: 360,
-                duration: 2000,
-                repeat: -1
+                duration: 4000,
+                repeat: -1,
+                ease: 'Linear'
             });
 
             // End after success
@@ -145,7 +133,7 @@ export class MechanicalReasoningScene extends Phaser.Scene {
     endGame() {
         const onGameEnd = this.registry.get('onGameEnd');
         if (onGameEnd) {
-            onGameEnd({ score: this.score, maxScore: 20 }); // Single question demo
+            onGameEnd({ score: this.score, maxScore: 20 });
         }
     }
 }

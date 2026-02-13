@@ -101,6 +101,50 @@ SELECT id, 'ST1035', ARRAY['Mathematics', 'Electricity', 'Physics'],
 FROM tracks WHERE code = 'TECH'
 ON CONFLICT (code) DO NOTHING;
 
+-- Real STEM Combinations from Ministry Portal
+INSERT INTO subject_combinations (track_id, code, subjects, career_clusters, difficulty_rating, demand_level)
+SELECT id, 'ST1044', ARRAY['Biology', 'Building & Construction', 'Chemistry'], 
+  ARRAY['Construction Management', 'Civil Engineering', 'Architecture'], 4.3, 'MEDIUM'
+FROM tracks WHERE code = 'PURE_SCI'
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO subject_combinations (track_id, code, subjects, career_clusters, difficulty_rating, demand_level)
+SELECT id, 'ST1042', ARRAY['Agriculture', 'Biology', 'Chemistry'], 
+  ARRAY['Agricultural Science', 'Botany', 'Food Science'], 4.0, 'MEDIUM'
+FROM tracks WHERE code = 'PURE_SCI'
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO subject_combinations (track_id, code, subjects, career_clusters, difficulty_rating, demand_level)
+SELECT id, 'ST1026', ARRAY['Core Mathematics', 'Business Studies', 'General Science'], 
+  ARRAY['Business Administration', 'Economics', 'Statistics'], 3.8, 'HIGH'
+FROM tracks WHERE code = 'PURE_SCI'
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO subject_combinations (track_id, code, subjects, career_clusters, difficulty_rating, demand_level)
+SELECT id, 'ST1035', ARRAY['Core Mathematics', 'Electricity', 'Physics'], 
+  ARRAY['Electrical Engineering', 'Physics', 'Telecommunications'], 4.4, 'HIGH'
+FROM tracks WHERE code = 'PURE_SCI'
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO subject_combinations (track_id, code, subjects, career_clusters, difficulty_rating, demand_level)
+SELECT id, 'ST1005', ARRAY['Core Mathematics', 'Biology', 'Building & Construction'], 
+  ARRAY['Architecture', 'Quantity Surveying', 'Construction'], 4.2, 'MEDIUM'
+FROM tracks WHERE code = 'PURE_SCI'
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO subject_combinations (track_id, code, subjects, career_clusters, difficulty_rating, demand_level)
+SELECT id, 'ST1016', ARRAY['Core Mathematics', 'Chemistry', 'Geography'], 
+  ARRAY['Geology', 'Environmental Science', 'Mining Engineering'], 4.1, 'MEDIUM'
+FROM tracks WHERE code = 'PURE_SCI'
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO subject_combinations (track_id, code, subjects, career_clusters, difficulty_rating, demand_level)
+SELECT id, 'ST1043', ARRAY['Aviation', 'Biology', 'Chemistry'], 
+  ARRAY['Aeronautical Engineering', 'Pilot', 'Aviation Management'], 4.8, 'HIGH'
+FROM tracks WHERE code = 'PURE_SCI'
+ON CONFLICT (code) DO NOTHING;
+
+
 -- 1.4 KENYA COUNTIES (47)
 CREATE TABLE IF NOT EXISTS kenya_counties (
   id SERIAL PRIMARY KEY,
@@ -202,11 +246,21 @@ CREATE TABLE IF NOT EXISTS schools (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Sample schools
+-- Sample schools (Updated with Real Ministry Data)
 INSERT INTO schools (school_name, county, sub_county, sex, accommodation, cluster, category, pathway_offering, offered_pathways, merit_category, total_capacity) VALUES
 ('Alliance High School', 'Kiambu', 'Kikuyu', 'BOYS', 'BOARDING', 'C1', 'REGULAR', 'TRIPLE', ARRAY['STEM', 'SOSC', 'ARTS'], 'NATIONAL', 800),
 ('Kenya High School', 'Nairobi', 'Westlands', 'GIRLS', 'BOARDING', 'C1', 'REGULAR', 'TRIPLE', ARRAY['STEM', 'SOSC', 'ARTS'], 'NATIONAL', 750),
-('Mang''u High School', 'Kiambu', 'Gatundu South', 'BOYS', 'BOARDING', 'C1', 'REGULAR', 'TRIPLE', ARRAY['STEM', 'SOSC', 'ARTS'], 'NATIONAL', 900)
+('Mang''u High School', 'Kiambu', 'Gatundu South', 'BOYS', 'BOARDING', 'C1', 'REGULAR', 'TRIPLE', ARRAY['STEM', 'SOSC', 'ARTS'], 'NATIONAL', 900),
+
+-- Real schools from screenshot
+('Prince Alex Mixed', 'Tharaka-Nithi', 'Chuka', 'MIXED', 'DAY', 'C4', 'REGULAR', 'DOUBLE', ARRAY['STEM', 'SOSC'], 'SUB_COUNTY', 200),
+('Tarakwa', 'Bomet', 'Bomet East', 'MIXED', 'DAY', 'C4', 'REGULAR', 'DOUBLE', ARRAY['STEM', 'SOSC'], 'SUB_COUNTY', 180),
+('Gatanga Girls'' Secondary School', 'Murang''a', 'Gatanga', 'GIRLS', 'BOARDING', 'C2', 'REGULAR', 'TRIPLE', ARRAY['STEM', 'SOSC', 'ARTS'], 'EXTRA_COUNTY', 400),
+('Chebarus Secondary School', 'Nandi', 'Tinderet', 'MIXED', 'DAY', 'C4', 'REGULAR', 'DOUBLE', ARRAY['STEM', 'SOSC'], 'SUB_COUNTY', 250),
+('St Charles Lunganyiro Girls', 'Kakamega', 'Matungu', 'MIXED', 'DAY', 'C4', 'REGULAR', 'DOUBLE', ARRAY['STEM', 'SOSC'], 'SUB_COUNTY', 300), -- Marked Mixed in portal
+('Bungu Sec', 'Kilifi', 'Ganze', 'MIXED', 'DAY', 'C4', 'REGULAR', 'DOUBLE', ARRAY['STEM', 'SOSC'], 'SUB_COUNTY', 150),
+('Namamba Mixed', 'Kakamega', 'Lugari', 'BOYS', 'BOARDING', 'C3', 'REGULAR', 'DOUBLE', ARRAY['STEM', 'SOSC'], 'COUNTY', 350) -- Marked Boys in portal
+
 ON CONFLICT (uic) DO NOTHING;
 
 -- 1.6 SCHOOL SUBJECT COMBINATIONS

@@ -1,0 +1,10 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" fill="#3B82F6"/>
+  <circle cx="512" cy="512" r="400" fill="#F97316"/>
+  <path d="M512 256L768 512L512 768L256 512L512 256Z" fill="white"/>
+  <circle cx="512" cy="256" r="40" fill="#3B82F6"/>
+  <circle cx="768" cy="512" r="40" fill="#3B82F6"/>
+  <circle cx="512" cy="768" r="40" fill="#3B82F6"/>
+  <circle cx="256" cy="512" r="40" fill="#3B82F6"/>
+  <text x="512" y="550" font-family="Arial" font-size="120" fill="#3B82F6" text-anchor="middle" font-weight="bold">AKILI</text>
+</svg>

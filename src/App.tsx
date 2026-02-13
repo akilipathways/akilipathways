@@ -4,7 +4,10 @@ import { Home } from '@/pages/Home';
 import { StudentDashboard } from '@/pages/StudentDashboard';
 import { AssessmentLobby } from '@/pages/AssessmentLobby';
 import { SchoolSelectionWizard } from '@/pages/SchoolSelectionWizard';
+import { ParentDashboard } from '@/pages/ParentDashboard';
+import { TeacherDashboard } from '@/pages/TeacherDashboard';
 import { SituationalJudgementAssessment } from '@/pages/assessments/SituationalJudgementAssessment';
+import { InterestInventoryAssessment } from '@/pages/assessments/InterestInventoryAssessment';
 import { Login } from '@/pages/auth/Login';
 import { Signup } from '@/pages/auth/Signup';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -80,7 +83,18 @@ function App() {
                             </div>
                         } />
                         <Route path="/assessment/sit" element={<SituationalJudgementAssessment />} />
+                        <Route path="/assessment/interest" element={<InterestInventoryAssessment />} />
                         <Route path="/selection" element={<SchoolSelectionWizard />} />
+                    </Route>
+
+                    {/* Protected Parent Routes */}
+                    <Route element={<ProtectedRoute allowedRoles={['PARENT']} />}>
+                        <Route path="/parent" element={<ParentDashboard />} />
+                    </Route>
+
+                    {/* Protected Teacher Routes */}
+                    <Route element={<ProtectedRoute allowedRoles={['TEACHER']} />}>
+                        <Route path="/teacher" element={<TeacherDashboard />} />
                     </Route>
                 </Routes>
             </MainLayout>

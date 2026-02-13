@@ -238,7 +238,40 @@ npx cap open android
 6. Test on emulator/device
 7. Upload to Google Play Console
 
----
+
+### 🚀 Detailed Android Testing Guide
+
+1.  **Open Android Studio**
+    ```bash
+    npx cap open android
+    ```
+
+2.  **Wait for Gradle Sync**
+    - Android Studio will take a few minutes to sync dependencies. Watch the bottom status bar.
+    - If asked to update Gradle plugin, click **"Upgrade"**.
+
+3.  **Create Custom Device (Emulator)**
+    - Go to **Device Manager** (Phone icon on top right).
+    - Click **Create Device**.
+    - Select **Phone** -> **Pixel 6**.
+    - Select a System Image (e.g., **API 33** or **API 34**). Download if needed.
+    - Click **Finish**.
+
+4.  **Run the App**
+    - Select your new device (Pixel 6) in the top dropdown.
+    - Click the green **Run (Play)** button.
+    - The emulator will launch.
+    - **Verify**:
+        - [ ] Splash Screen appears (Blue gradient with Akili Logo)
+        - [ ] App loads to the Login Screen
+        - [ ] Layout fits the screen width
+        - [ ] Typing in input fields invokes the keyboard
+
+5.  **Troubleshooting Emulator**
+    - **"HAXM not installed"**: Enable "Hyper-V" in Windows Features.
+    - **"System UI isn't responding"**: Wipe data in Device Manager and restart emulator.
+    - **White Screen**: Check Logcat tab for "WebView" errors. Ensure Android System WebView is up to date in the emulator.
+
 
 ## 🎮 PSYCHOMETRIC GAMES IMPLEMENTATION GUIDE
 

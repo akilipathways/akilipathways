@@ -114,3 +114,10 @@ export interface AssessmentResponse {
     is_correct: boolean;
     response_time_ms: number;
 }
+
+export interface SelectionSlot {
+    id: number;
+    combination_index: number;
+    type: 'BOARDING_OUTSIDE_COUNTY' | 'BOARDING_WITHIN_COUNTY' | 'DAY_WITHIN_SUB_COUNTY';
+    school: School | null;
+}

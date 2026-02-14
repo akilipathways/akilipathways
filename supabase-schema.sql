@@ -213,8 +213,11 @@ CREATE TABLE IF NOT EXISTS schools (
   sub_county TEXT,
   sex TEXT NOT NULL CHECK (sex IN ('BOYS', 'GIRLS', 'MIXED')),
   accommodation TEXT NOT NULL CHECK (accommodation IN ('DAY', 'BOARDING', 'HYBRID', 'DAY & BOARDING')),
-  cluster TEXT NOT NULL CHECK (cluster IN ('C1', 'C2', 'C3', 'C4')),
+  cluster TEXT NOT NULL CHECK (cluster IN ('C1', 'C2', 'C3', 'C4', 'PR')),
   category TEXT NOT NULL CHECK (category IN ('REGULAR', 'SNE', 'INTEGRATED')),
+  school_type TEXT CHECK (school_type IN ('PUBLIC', 'PRIVATE')),
+  region TEXT,
+  UNIQUE(school_name, county),
   
   -- CBE Pathway Offering
   pathway_offering TEXT CHECK (pathway_offering IN ('TRIPLE', 'DOUBLE')),

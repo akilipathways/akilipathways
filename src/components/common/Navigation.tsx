@@ -3,17 +3,27 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
+import { LogOut, User as UserIcon } from 'lucide-react';
 
 export function Navigation() {
     const [isOpen, setIsOpen] = useState(false);
     const location = useLocation();
+    const { user, profile, signOut } = useAuth();
 
-    const navItems = [
+    // Public navigation items (always visible)
+    const publicNavItems = [
         { name: 'Home', path: '/' },
-        { name: 'Dashboard', path: '/dashboard' },
-        { name: 'Assessment', path: '/assessment' },
         { name: 'Schools', path: '/schools' },
     ];
+
+    // Protected navigation items (only show when logged in)
+    const protectedNavItems = [
+        { name: 'Dashboard', path: '/dashboard' },
+        { name: 'Assessment', path: '/assessment' },
+    ];
+
+    const navItems = user ? [...publicNavItems, ...protectedNavItems] : publicNavItems;
 
     const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -40,18 +50,35 @@ export function Navigation() {
                                 {item.name}
                             </Link>
                         ))}
-                        <div className="flex items-center space-x-4">
-                            <Link to="/login">
-                                <Button variant="ghost" className="text-white hover:text-accent-orange hover:bg-white/10">
-                                    Log In
+                        {user ? (
+                            <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2 text-sm">
+                                    <UserIcon className="w-4 h-4" />
+                                    <span>{profile?.full_name || 'User'}</span>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    className="text-white hover:text-accent-orange hover:bg-white/10"
+                                    onClick={() => signOut()}
+                                >
+                                    <LogOut className="w-4 h-4 mr-2" />
+                                    Log Out
                                 </Button>
-                            </Link>
-                            <Link to="/signup">
-                                <Button variant="accent">
-                                    Get Started
-                                </Button>
-                            </Link>
-                        </div>
+                            </div>
+                        ) : (
+                            <div className="flex items-center space-x-4">
+                                <Link to="/login">
+                                    <Button variant="ghost" className="text-white hover:text-accent-orange hover:bg-white/10">
+                                        Log In
+                                    </Button>
+                                </Link>
+                                <Link to="/signup">
+                                    <Button variant="accent">
+                                        Get Started
+                                    </Button>
+                                </Link>
+                            </div>
+                        )}
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -83,18 +110,38 @@ export function Navigation() {
                                 {item.name}
                             </Link>
                         ))}
-                        <div className="pt-4 pb-2 border-t border-white/10 mt-4 flex flex-col space-y-2 px-3">
-                            <Link to="/login" onClick={() => setIsOpen(false)}>
-                                <Button variant="ghost" className="w-full justify-start text-white hover:text-accent-orange hover:bg-white/10">
-                                    Log In
+                        {user ? (
+                            <div className="pt-4 pb-2 border-t border-white/10 mt-4 flex flex-col space-y-2 px-3">
+                                <div className="flex items-center space-x-2 text-sm px-3 py-2">
+                                    <UserIcon className="w-4 h-4" />
+                                    <span>{profile?.full_name || 'User'}</span>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    className="w-full justify-start text-white hover:text-accent-orange hover:bg-white/10"
+                                    onClick={() => {
+                                        signOut();
+                                        setIsOpen(false);
+                                    }}
+                                >
+                                    <LogOut className="w-4 h-4 mr-2" />
+                                    Log Out
                                 </Button>
-                            </Link>
-                            <Link to="/signup" onClick={() => setIsOpen(false)}>
-                                <Button variant="accent" className="w-full">
-                                    Get Started
-                                </Button>
-                            </Link>
-                        </div>
+                            </div>
+                        ) : (
+                            <div className="pt-4 pb-2 border-t border-white/10 mt-4 flex flex-col space-y-2 px-3">
+                                <Link to="/login" onClick={() => setIsOpen(false)}>
+                                    <Button variant="ghost" className="w-full justify-start text-white hover:text-accent-orange hover:bg-white/10">
+                                        Log In
+                                    </Button>
+                                </Link>
+                                <Link to="/signup" onClick={() => setIsOpen(false)}>
+                                    <Button variant="accent" className="w-full">
+                                        Get Started
+                                    </Button>
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

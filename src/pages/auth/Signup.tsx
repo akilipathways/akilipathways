@@ -188,9 +188,10 @@ export function Signup() {
                             <div className="flex gap-4 w-full">
                                 <Button
                                     type="button"
-                                    variant="outline"
+                                    variant="secondary"
                                     onClick={() => setStep(1)}
                                     disabled={loading}
+                                    className="bg-slate-100 hover:bg-slate-200 text-slate-900"
                                 >
                                     Back
                                 </Button>
@@ -198,9 +199,9 @@ export function Signup() {
                                     {loading ? 'Creating Account...' : 'Sign Up'}
                                 </Button>
                             </div>
-                            <div className="text-center text-sm text-slate-500">
+                            <div className="text-center text-sm text-slate-700">
                                 Already have an account?{' '}
-                                <Link to="/login" className="text-primary-blue hover:underline">
+                                <Link to="/login" className="text-primary-blue hover:underline font-medium">
                                     Sign in
                                 </Link>
                             </div>
